@@ -40,13 +40,14 @@ def register(data):
     person = {"command": "register", "handle": data[1]}
     return person
 
-def sendToAll(data):
+def sendToAll(data, name):
     message = " ".join(data[1:])
-    print("Message: " + message)
-    send = {"command": "all", "message": message}
+    withHandle = name + ": " + message
+    print("Message: " + withHandle)
+    send = {"command": "all", "message": withHandle}
     return send
 
-def sendToReceiver(data):
+def sendToReceiver(data): #sets handle as person receiving the message
     handle = "To " + data[1]
     message = " ".join(data[2:])
     print("Message: " + message)
@@ -54,7 +55,7 @@ def sendToReceiver(data):
     print(send)
     return send
 
-def fromSender(data, name):
+def fromSender(data, name): #sets handle as person who sent the message
     handle = "From " + name
     message = " ".join(data[2:])
     print("Message: " + message)
@@ -62,13 +63,13 @@ def fromSender(data, name):
     print(send)
     return send
 
-def findPerson(address):
+def findPerson(address): #find person's name based on address
     for c in clients:
         if c[1] == address:
             name = c[0]
             return name
 
-def findAddress(name):
+def findAddress(name): #find address based on name
     name = name.split()
     find = name[1]
     for c in clients:
@@ -131,7 +132,7 @@ while True:
             s.sendto(command.encode('utf-8'), sendTo)
         print("Done registering")
     elif data[0] == '/all':
-        command = json.dumps(sendToAll(data))
+        command = json.dumps(sendToAll(data, findPerson(address)))
         ctr = 1
         for c in clients:
             print(c[0])
