@@ -1,3 +1,4 @@
+""" 
 import socket
 import json
 
@@ -8,27 +9,34 @@ while True:
     data,addr = serversock.recvfrom(4096)
     print(str(data))
     serversock.sendto(data,addr)
-
-
-""" NOTES
+"""
 import socket
-serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+import json
 
+if __name__ == "__main__":
+    host = socket.gethostname()
 
-host = input("Enter The Server Ip: ")
-port = input("Enter The Server Port: ")
+    addr = (host, 12345)
+    sockinfo = socket.getnameinfo(addr,socket.NI_NUMERICSERV)[1]
+    print(sockinfo)
+    port =12345
+    """ Creating the UDP socket """
+    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-serversocket.bind((host, port)) 
+    """ Bind the host address with the port """
+    server.bind((host, port))
+    
+    while True:
+        data, addr = server.recvfrom(1024)
+        data = data.decode("utf-8")
+        print(data)
 
-serversocket.listen(10)
+        if data == "!EXIT":
+            print("Client disconnected.")
+            break
 
-while True :
-    clientsocket, address = serversocket.accept()
+        print(f"Client: {data}")
 
-    print("Received Connection From %s" % str(address))
-
-    message = 'Connection Established' + "\r\n"
-    clientsocket.send(message.encode("ascii"))
-
-    clientsocket.close()
-    """
+        data = data.upper()
+        data = data.encode("utf-8")
+        server.sendto(data, addr)
