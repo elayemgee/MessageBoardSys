@@ -118,14 +118,14 @@ while True:
             ctr += 1
         print("Done sending to all")
     elif data[0] == '/msg':
-        command = json.dumps(sendToAll(data))
+        command = json.dumps(sendToOne(data))
         handle = command["handle"]
         for c in clients:
             if c[0] == handle:
-                address = c[1]
+                dest = c[1]
                 break
+        s.sendto(command.encode('utf-8'), dest)
         s.sendto(command.encode('utf-8'), address)
-
 
     
 
