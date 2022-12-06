@@ -2,13 +2,13 @@ import socket
 import json
 
 def commandlist():
-    print("Command List")
-    print("1. Connect to the server application: /join <server_ip_add> <port>")
-    print("2. Disconnect to the server application: /leave")
-    print("3. Register a unique handle or alias: /register <handle>")
-    print("4. Send message to all: /all <message>")
-    print("5. Send direct message to a single handle: /msg <handle> <message>")
-    print("6. Request command help to output all Input Syntax commands for references: /?")
+    print(""" Command List\n
+    1. Connect to the server application: /join <server_ip_add> <port>\n
+    2. Disconnect to the server application: /leave\n
+    3. Register a unique handle or alias: /register <handle>\n
+    4. Send message to all: /all <message>\n
+    5. Send direct message to a single handle: /msg <handle> <message> \n
+    6. Request command help to output all Input Syntax commands for references: /?""")
 
 # Create socket for server
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
@@ -30,6 +30,8 @@ else:
 while True:
     command = input("")
     all_words = command.split()
+    s.send(command.encode())
+
     if command == "/leave":
         break
     elif command == "/?":
@@ -39,14 +41,28 @@ while True:
         x = s.recv(4096)
         x = x.decode('utf-8')
         x.replace("'", '"')
-        command = json.loads(x)
-        print("Welcome " + command["handle"])
-    """ 
+        comm = json.loads(x)
+        print("Welcome " + comm["handle"]) 
+
+        """ 
     elif len(all_words) >= 2 and all_words[0] == "/all":
-        message = " ".join(all_words[1:])
-        print(message)
-        s.send(message.encode())
-    """
+        s.send(command.encode())
+        x = s.recv(4096)
+        x = x.decode('utf-8')
+        x.replace("'", '"')
+        #comm = json.loads(x)
+        #print(comm["message"])
+"""
+    x = s.recv(4096)
+    x = x.decode('utf-8')
+    x.replace("'", '"')
+    comm = json.loads(x)
+    if comm["command"] == "register":
+        print("Welcome " + comm["handle"]) 
+    if comm["command"] == "all":
+        print(comm["message"])
+    
+    
     
     """
     else: 

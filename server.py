@@ -10,33 +10,136 @@ while True:
     print(str(data))
     serversock.sendto(data,addr)
 """
+
 import socket
 import json
 
-if __name__ == "__main__":
-    host = socket.gethostname()
+def successConnect():
+    join = {"command":"join"}
+    return join
 
-    addr = (host, 12345)
-    sockinfo = socket.getnameinfo(addr,socket.NI_NUMERICSERV)[1]
-    print(sockinfo)
-    port =12345
-    """ Creating the UDP socket """
-    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    """ Bind the host address with the port """
-    server.bind((host, port))
+def leave():
+    exit = {"command":"leave"}
+    return exit
+
+def commandlist():
+    commands = (""" Command List\n
+    1. Connect to the server application: /join <server_ip_add> <port>\n
+    2. Disconnect to the server application: /leave\n
+    3. Register a unique handle or alias: /register <handle>\n
+    4. Send message to all: /all <message>\n
+    5. Send direct message to a single handle: /msg <handle> <message> \n
+    6. Request command help to output all Input Syntax commands for references: /?""")
+    help = {"command":"help", "message": commands}
+    return help
+
+def register(data):
+    person = {"command": "register", "handle": data[1]}
+    return person
+
+def sendToAll(data):
+    message = " ".join(data[1:])
+    print("Message: " + message)
+    send = {"command": "all", "message": message}
+    return send
+
+def sendToOne(data):
+    handle = data[1]
+    message = " ".join(data[2:])
+    print("Message: " + message)
+    send = {"command": "msg", "handle":handle, "message": message}
+    return send
+
+
+# Create a UDP socket
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+clients = list()
+host = '127.0.0.1'
+port = 12345
+s.bind((host, port))
+
+while True:
+    print("####### Server is listening #######")
+    data, address = s.recvfrom(4096)
+    print(data)
+    print(address)
+    print("\n\n 2. Server received: ", data.decode('utf-8'), "\n\n")
+
+    data = data.decode('utf-8')
+    data = data.split()
+
+    #for the error messages, have to double check the test kit cuz i don't fully understand which
+    #error messages pop up per situation
+    if data[0] == '/join':
+        try:
+            if data[1] == host and int(data[2]) == port:
+                command = json.dumps(successConnect())
+                s.sendto(command.encode('utf-8'), address)
+        except:
+            print("Error: Connection to the Message Board Server has failed! Please check IP Address and Port Number")
+    elif data[0] == '/leave': 
+        try:
+            command = json.dumps(leave())
+            s.sendto(command.encode('utf-8'), address)
+        except:
+            print("Error: Disconnection failed. Please connect to the server first.")           
+
+    elif data[0] == '/?':
+        command = json.dumps(commandlist())
+        print(command)
+        s.sendto(command.encode('utf-8'), address)
+
+    elif data[0] == '/register':
+        temp = list()
+        temp.append(data[1])
+        temp.append(address)
+        print(temp)
+        clients.append(temp)
+        print(clients)
+        #converts to json and sends the completion of command to client
+        command = json.dumps(register(data))
+        #s.sendto(command.encode('utf-8'), address)
+
+        for c in clients:
+            print(c[0])
+            sendTo = c[1]
+            s.sendto(command.encode('utf-8'), sendTo)
+        print("Done registering")
+
+    elif data[0] == '/all':
+        command = json.dumps(sendToAll(data))
+        ctr = 1
+        for c in clients:
+            print(c[0])
+            sendTo = c[1]
+            s.sendto(command.encode('utf-8'), sendTo)
+            print("Sent to " + str(ctr))
+            ctr += 1
+        print("Done sending to all")
+    elif data[0] == '/msg':
+        command = json.dumps(sendToAll(data))
+        handle = command["handle"]
+        for c in clients:
+            if c[0] == handle:
+                address = c[1]
+                break
+        s.sendto(command.encode('utf-8'), address)
+
+
     
-    while True:
-        data, addr = server.recvfrom(1024)
-        data = data.decode("utf-8")
-        print(data)
 
-        if data == "!EXIT":
-            print("Client disconnected.")
-            break
+    """ 
+    s_name = host.recv(1024)
+    s_name = s_name.decode()
+    print(s_name, "has connected to the chat room")
+    host.send(s_name.encode())
+    """
+    
 
-        print(f"Client: {data}")
-
-        data = data.upper()
-        data = data.encode("utf-8")
-        server.sendto(data, addr)
+    
+    """ 
+    send_data = input("Type some text to send => ")
+    s.sendto(send_data.encode('utf-8'), address)
+    print("\n\n 1. Server sent : ", send_data,"\n\n")
+    """
