@@ -9,7 +9,6 @@ shost = socket.gethostname()
 ip = socket.gethostbyname(shost)
 print(shost, "(", ip, ")\n")
 host = input(str("Enter server address: "))
-#port = input(str("Enter port number: "))
 name = input(str("\nEnter your name: "))
 port = 1234
 print("\nTrying to connect to ", host, "(", port, ")\n")
