@@ -4,7 +4,6 @@ import threading
 
 UDP_MAX_SIZE = 65535
     
-
 def listen(s: socket.socket):
     while True:
         msg = s.recv(UDP_MAX_SIZE)
@@ -21,11 +20,11 @@ def listen(s: socket.socket):
         if comm["command"] == "all":
             x.replace("'", '"')
             print('\r\r' + comm["message"])
-            #concern: idk how to make it so that multiple people can receive the same message at the same time
         if comm["command"] == "msg":
             x.replace("'", '"')
             print('\r\r' + "[" + comm["handle"] + "]: " + comm["message"])   
-        #print('\r\r' + msg.decode('ascii') + '\n' , end='')
+    s.close()
+    print("Connection closed. Thank you!")
 
 # Create socket for server
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
@@ -63,5 +62,4 @@ while True:
     
 
 # close the socket
-s.close()
-print("Connection closed. Thank you!")
+

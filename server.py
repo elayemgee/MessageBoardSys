@@ -14,6 +14,8 @@ while True:
 import socket
 import json
 
+clients = list()
+
 def successConnect():
     join = {"command":"join"}
     return join
@@ -44,17 +46,39 @@ def sendToAll(data):
     send = {"command": "all", "message": message}
     return send
 
-def sendToOne(data):
-    handle = data[1]
+def sendToReceiver(data):
+    handle = "To " + data[1]
     message = " ".join(data[2:])
     print("Message: " + message)
-    send = {"command": "msg", "handle":handle, "message": message}
+    send = {"command": "msg", "handle": handle, "message": message}
+    print(send)
     return send
+
+def fromSender(data, name):
+    handle = "From " + name
+    message = " ".join(data[2:])
+    print("Message: " + message)
+    send = {"command": "msg", "handle": handle, "message": message}
+    print(send)
+    return send
+
+def findPerson(address):
+    for c in clients:
+        if c[1] == address:
+            name = c[0]
+            return name
+
+def findAddress(name):
+    name = name.split()
+    find = name[1]
+    for c in clients:
+        if c[0] == find:
+            address = c[1]
+            return address
 
 
 # Create a UDP socket
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-clients = list()
 host = '127.0.0.1'
 port = 12345
 s.bind((host, port))
@@ -118,14 +142,19 @@ while True:
             ctr += 1
         print("Done sending to all")
     elif data[0] == '/msg':
-        command = json.dumps(sendToOne(data))
-        handle = command["handle"]
-        for c in clients:
-            if c[0] == handle:
-                dest = c[1]
-                break
-        s.sendto(command.encode('utf-8'), dest)
-        s.sendto(command.encode('utf-8'), address)
+        senderName = findPerson(address)
+        sender = json.dumps(fromSender(data, senderName))
+        sender.replace("'", '"')
+        se = json.loads(sender)
+        print("Sender: " + se["handle"])
+
+        receiver = json.dumps(sendToReceiver(data))
+        receiver.replace("'", '"')
+        r = json.loads(receiver)
+        print("Receiver: " + r["handle"])
+        
+        s.sendto(receiver.encode('utf-8'), findAddress(se["handle"])) #receiver sees that message is from sender
+        s.sendto(sender.encode('utf-8'), findAddress(r["handle"]))  #sender sees that message is sent to receiver
 
     
 
@@ -135,8 +164,6 @@ while True:
     print(s_name, "has connected to the chat room")
     host.send(s_name.encode())
     """
-    
-
     
     """ 
     send_data = input("Type some text to send => ")
