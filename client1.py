@@ -15,8 +15,7 @@ def listen(s: socket.socket):
             print('\r\r' + comm["message"])
         if comm["command"] == "register":
             x.replace("'", '"')
-            print('\r\r' + "Welcome " + comm["handle"])
-            
+            print('\r\r' + "Welcome " + comm["handle"] + "!")      
         if comm["command"] == "all":
             x.replace("'", '"')
             print('\r\r' + comm["message"])

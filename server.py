@@ -130,7 +130,6 @@ while True:
             sendTo = c[1]
             s.sendto(command.encode('utf-8'), sendTo)
         print("Done registering")
-
     elif data[0] == '/all':
         command = json.dumps(sendToAll(data))
         ctr = 1
