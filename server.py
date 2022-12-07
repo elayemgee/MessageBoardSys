@@ -77,6 +77,14 @@ def findAddress(name): #find address based on name
             address = c[1]
             return address
 
+def findClientIndex(address):
+    ctr = 0
+    index = 0
+    for c in clients:
+            if c[1] == address:
+                index = clients.index(c)
+                return index
+
 
 # Create a UDP socket
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -96,15 +104,17 @@ while True:
 
     #for the error messages, have to double check the test kit cuz i don't fully understand which
     #error messages pop up per situation
-    if data[0] == '/join':
+    if len(data) == 3 and data[0] == '/join':
         try:
             if data[1] == host and int(data[2]) == port:
                 command = json.dumps(successConnect())
                 s.sendto(command.encode('utf-8'), address)
         except:
             print("Error: Connection to the Message Board Server has failed! Please check IP Address and Port Number")
-    elif data[0] == '/leave': 
+    elif len(data) == 1 and data[0] == '/leave': 
         try:
+            indexAddress = findClientIndex(address)
+            clients.pop(indexAddress)
             command = json.dumps(leave())
             s.sendto(command.encode('utf-8'), address)
         except:
