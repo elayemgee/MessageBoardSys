@@ -46,7 +46,6 @@ def listen(s: socket.socket):
     return None
     
     
-
 # Create socket for server
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 thread = threading.Thread(target=listen, args=(s,), daemon=True)
@@ -76,7 +75,6 @@ s.send(command.encode())
 """
 
 # Let's send data through UDP protocol
-
 while True:
     """
     x = s.recv(4096)
