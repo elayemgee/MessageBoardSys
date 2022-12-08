@@ -1,16 +1,3 @@
-""" 
-import socket
-import json
-
-serversock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-serversock.bind(('127.0.0.1', 12345))
-
-while True:
-    data,addr = serversock.recvfrom(4096)
-    print(str(data))
-    serversock.sendto(data,addr)
-"""
-
 import socket
 import json
 
@@ -120,11 +107,6 @@ while True:
         except:
             print("Error: Disconnection failed. Please connect to the server first.")           
 
-    elif data[0] == '/?':
-        command = json.dumps(commandlist())
-        print(command)
-        s.sendto(command.encode('utf-8'), address)
-
     elif data[0] == '/register':
         temp = list()
         temp.append(data[1])
@@ -166,17 +148,10 @@ while True:
         s.sendto(receiver.encode('utf-8'), findAddress(se["handle"])) #receiver sees that message is from sender
         s.sendto(sender.encode('utf-8'), findAddress(r["handle"]))  #sender sees that message is sent to receiver
 
+""" 
+    elif data[0] == '/?':
+        command = json.dumps(commandlist())
+        print(command)
+        s.sendto(command.encode('utf-8'), address)
+"""
     
-
-    """ 
-    s_name = host.recv(1024)
-    s_name = s_name.decode()
-    print(s_name, "has connected to the chat room")
-    host.send(s_name.encode())
-    """
-    
-    """ 
-    send_data = input("Type some text to send => ")
-    s.sendto(send_data.encode('utf-8'), address)
-    print("\n\n 1. Server sent : ", send_data,"\n\n")
-    """
