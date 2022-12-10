@@ -83,53 +83,14 @@ def listen(s: socket.socket):
     print("Connection closed. Thank you!")   
     return None
     
-    
-# Create socket for server
-
-
-""" 
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-thread = threading.Thread(target=listen, args=(s,), daemon=True)
-
-
-
-#client must join first before getting access to input other commands, this needs to be in a loop
-while True:
-    connect = input("")
-    all_words = connect.split()
-    if len(all_words) == 3:
-        first = all_words[0]
-        host = all_words[1]
-        port = int(all_words[2])
-    if first == '/join' and host == server_addr and port == server_port:
-        join = json.dumps(json_join())
-        s.sendto(join.encode('utf-8'), server)
-        #s.connect((host, port))
-        #print("Connection to the Message Board Server is successful!")
-        thread.start()
-        break
-        #s.send(join.encode('utf-8'), port)
-    else:
-        print("Error: Connection to the Message Board Server has failed! Please check IP Address and Port Number.")
-"""
-
-""" 
-command = input("")
-all_words = command.split()
-s.send(command.encode())
-"""
-
 # Let's send data through UDP protocol
 while True:
-    """
-    x = s.recv(4096)
-    x = x.decode('utf-8')
-    comm = json.loads(x)
-    """ 
     command = input("")
-    #needs to be edited so that the correct ip address and port number are used to connect to server
+
+    #client must be connected first to server
     if connected == False and command == "/join 127.0.0.1 12345":
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        #create socket for server
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
         connected = True
         join = json.dumps(json_join())
         s.sendto(join.encode('utf-8'), server)
@@ -147,21 +108,15 @@ while True:
             s.sendto(leave.encode('utf-8'), server)
         elif len(command) == 2 and command[0] == '/register':
             register = json.dumps(json_register(command[1]))
-            #s.send(register.encode('utf-8'))
             s.sendto(register.encode('utf-8'), server)
-            #s.send(bytes(register, "utf-8"))
         elif len(command) >= 2 and command[0] == '/all':
             send_all = json.dumps(json_all(command))
-            #s.send(send_all.encode('utf-8'))
             s.sendto(send_all.encode('utf-8'), server)
         elif len(command) >= 3 and command[0] == '/msg':
             send_one = json.dumps(json_sendone(command))
-            #s.send(send_one.encode('utf-8'))
             s.sendto(send_one.encode('utf-8'), server)
         else:
             print("error")
     else:
         print("error")
-
-# close the socket
 

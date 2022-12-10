@@ -22,14 +22,6 @@ def sendToAll(data, name):
     send = {"command": "all", "message": withHandle}
     return send
 
-def sendToReceiver(data): #sets handle as person receiving the message
-    handle = "To " + data[1]
-    message = " ".join(data[2:])
-    print("Message: " + message)
-    send = {"command": "msg", "handle": handle, "message": message}
-    print(send)
-    return send
-
 def fromSender(message, name): #sets handle as person who sent the message
     send = {"command": "msg", "handle": name, "message": message}
     return send
@@ -70,12 +62,9 @@ while True:
     print("\n\n Server received: ", data.decode('utf-8'), "\n\n")
 
     data = data.decode('utf-8')
-    #data = data.split()
     comm = json.loads(data)
     print(comm)
 
-    #for the error messages, have to double check the test kit cuz i don't fully understand which
-    #error messages pop up per situation
     if comm["command"] == 'join':
         #s.connect((host, port))
         #output = "Connection to the Message Board Server is successful!"
@@ -129,13 +118,6 @@ while True:
         se = json.loads(sender)
         print("Sender: " + se["handle"])
 
-        """ 
-        receiver = json.dumps(sendToReceiver(data))
-        receiver.replace("'", '"')
-        r = json.loads(receiver)
-        print("Receiver: " + r["handle"])
-        """
-        
         s.sendto(data.encode('utf-8'), findAddress(senderName)) #receiver sees that message is from sender
         s.sendto(sender.encode('utf-8'), findAddress(comm["handle"]))  #sender sees that message is sent to receiver
 
