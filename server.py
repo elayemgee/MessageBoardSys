@@ -7,21 +7,9 @@ def successConnect():
     join = {"command":"join"}
     return join
 
-
 def leave():
     exit = {"command":"leave"}
     return exit
-
-def commandlist():
-    commands = (""" Command List\n
-    1. Connect to the server application: /join <server_ip_add> <port>\n
-    2. Disconnect to the server application: /leave\n
-    3. Register a unique handle or alias: /register <handle>\n
-    4. Send message to all: /all <message>\n
-    5. Send direct message to a single handle: /msg <handle> <message> \n
-    6. Request command help to output all Input Syntax commands for references: /?""")
-    help = {"command":"help", "message": commands}
-    return help
 
 def register(data):
     person = {"command": "register", "handle": data[1]}
@@ -42,12 +30,8 @@ def sendToReceiver(data): #sets handle as person receiving the message
     print(send)
     return send
 
-def fromSender(data, name): #sets handle as person who sent the message
-    handle = "From " + name
-    message = " ".join(data[2:])
-    print("Message: " + message)
-    send = {"command": "msg", "handle": handle, "message": message}
-    print(send)
+def fromSender(message, name): #sets handle as person who sent the message
+    send = {"command": "msg", "handle": name, "message": message}
     return send
 
 def findPerson(address): #find person's name based on address
@@ -57,10 +41,8 @@ def findPerson(address): #find person's name based on address
             return name
 
 def findAddress(name): #find address based on name
-    name = name.split()
-    find = name[1]
     for c in clients:
-        if c[0] == find:
+        if c[0] == name:
             address = c[1]
             return address
 
@@ -71,6 +53,7 @@ def findClientIndex(address):
             if c[1] == address:
                 index = clients.index(c)
                 return index
+    return None
 
 
 # Create a UDP socket
@@ -81,77 +64,79 @@ s.bind((host, port))
 
 while True:
     print("####### Server is listening #######")
-    data, address = s.recvfrom(4096)
+    data, address = s.recvfrom(1024) #4096
     print(data)
     print(address)
-    print("\n\n 2. Server received: ", data.decode('utf-8'), "\n\n")
+    print("\n\n Server received: ", data.decode('utf-8'), "\n\n")
 
     data = data.decode('utf-8')
-    data = data.split()
+    #data = data.split()
+    comm = json.loads(data)
+    print(comm)
 
     #for the error messages, have to double check the test kit cuz i don't fully understand which
     #error messages pop up per situation
-    if len(data) == 3 and data[0] == '/join':
-        try:
-            if data[1] == host and int(data[2]) == port:
-                command = json.dumps(successConnect())
-                s.sendto(command.encode('utf-8'), address)
-        except:
-            print("Error: Connection to the Message Board Server has failed! Please check IP Address and Port Number")
-    elif len(data) == 1 and data[0] == '/leave': 
-        try:
-            indexAddress = findClientIndex(address)
-            clients.pop(indexAddress)
-            command = json.dumps(leave())
-            s.sendto(command.encode('utf-8'), address)
-        except:
-            print("Error: Disconnection failed. Please connect to the server first.")           
-
-    elif data[0] == '/register':
+    if comm["command"] == 'join':
+        #s.connect((host, port))
+        #output = "Connection to the Message Board Server is successful!"
+        #s.sendto(output.encode('utf-8'), address)
+        data.replace("'", '"')
+        s.sendto(data.encode('utf-8'), address)
+        
+    elif comm["command"] == "leave": 
+        indexAddress = findClientIndex(address)
+        if indexAddress != None:
+            clients.pop(indexAddress)           
+        #command = json.dumps(leave())
+        data.replace("'", '"')
+        s.sendto(data.encode('utf-8'), address)
+        
+               
+    elif comm["command"] == "register":
         temp = list()
-        temp.append(data[1])
-        temp.append(address)
+        temp.append(comm["handle"])
+        temp.append(address) #address of user
         print(temp)
         clients.append(temp)
         print(clients)
         #converts to json and sends the completion of command to client
-        command = json.dumps(register(data))
+        data.replace("'", '"')
+        #command = json.dumps(register(data))
         #s.sendto(command.encode('utf-8'), address)
 
         for c in clients:
             print(c[0])
             sendTo = c[1]
-            s.sendto(command.encode('utf-8'), sendTo)
+            s.sendto(data.encode('utf-8'), sendTo)
         print("Done registering")
-    elif data[0] == '/all':
-        command = json.dumps(sendToAll(data, findPerson(address)))
+
+    elif comm["command"] == 'all':
+        data.replace("'", '"')
         ctr = 1
         for c in clients:
             print(c[0])
             sendTo = c[1]
-            s.sendto(command.encode('utf-8'), sendTo)
+            s.sendto(data.encode('utf-8'), sendTo)
             print("Sent to " + str(ctr))
             ctr += 1
         print("Done sending to all")
-    elif data[0] == '/msg':
+    elif comm["command"] == "msg":
+        data.replace("'", '"')
+        print(data)
         senderName = findPerson(address)
-        sender = json.dumps(fromSender(data, senderName))
+        sender = json.dumps(fromSender(comm["message"], senderName))
         sender.replace("'", '"')
         se = json.loads(sender)
         print("Sender: " + se["handle"])
 
+        """ 
         receiver = json.dumps(sendToReceiver(data))
         receiver.replace("'", '"')
         r = json.loads(receiver)
         print("Receiver: " + r["handle"])
+        """
         
-        s.sendto(receiver.encode('utf-8'), findAddress(se["handle"])) #receiver sees that message is from sender
-        s.sendto(sender.encode('utf-8'), findAddress(r["handle"]))  #sender sees that message is sent to receiver
+        s.sendto(data.encode('utf-8'), findAddress(senderName)) #receiver sees that message is from sender
+        s.sendto(sender.encode('utf-8'), findAddress(comm["handle"]))  #sender sees that message is sent to receiver
 
-""" 
-    elif data[0] == '/?':
-        command = json.dumps(commandlist())
-        print(command)
-        s.sendto(command.encode('utf-8'), address)
-"""
     
