@@ -1,6 +1,7 @@
 import socket
 import json
 import threading
+import sys
 
 UDP_MAX_SIZE = 65535
 connected = False
@@ -10,12 +11,12 @@ server_port = 12345
 server = (server_addr, server_port)
 
 def commandlist():
-    print(""" Command List\n
-    1. Connect to the server application: /join <server_ip_add> <port>\n
-    2. Disconnect to the server application: /leave\n
-    3. Register a unique handle or alias: /register <handle>\n
-    4. Send message to all: /all <message>\n
-    5. Send direct message to a single handle: /msg <handle> <message> \n
+    print(""" Command List
+    1. Connect to the server application: /join <server_ip_add> <port>
+    2. Disconnect to the server application: /leave
+    3. Register a unique handle or alias: /register <handle>
+    4. Send message to all: /all <message>
+    5. Send direct message to a single handle: /msg <handle> <message> 
     6. Request command help to output all Input Syntax commands for references: /?""")
 
 def set_name(name):
@@ -44,7 +45,11 @@ def json_sendone(data):
     message = " ".join(data[2:])
     send = {"command": "msg", "handle": handle, "message": message}
     return send
-    
+
+def json_error(message):
+    send = {"command": "error", "message": message}
+    return send
+
 def listen(s: socket.socket):
     global spark
     spark = True
@@ -53,14 +58,12 @@ def listen(s: socket.socket):
         #msg = s.recvfrom(4096)
         x = msg.decode('utf-8')
         comm = json.loads(x)
-        global connected
-        print("listening")
         
         if comm["command"] == 'join':
             #s.connect((host, port))
-            connected = True
             print("Connection to the Message Board Server is successful!")
         if comm["command"] == "leave":
+            global connected
             connected = False
             break
         if comm["command"] == "help":
@@ -75,33 +78,29 @@ def listen(s: socket.socket):
         if comm["command"] == "msg":
             x.replace("'", '"')
             if comm["handle"] != username:
-                print('\r\r' + "[To " + comm["handle"] + "]: " + comm["message"]) #sender's end
+                print('\r\r' + "[To " + comm["handle"] + "]: " + comm["message"])
             else:
-                print('\r\r' + "[From " + comm["handle"] + "]: " + comm["message"]) #receiver's end
- 
+                print('\r\r' + "[From " + comm["handle"] + "]: " + comm["message"])
+
     s.close()
     print("Connection closed. Thank you!")   
     return None
     
+    
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
+
 # Let's send data through UDP protocol
 while True:
     command = input("")
-
     #client must be connected first to server
-    #/join 127.0.0.1 12345
-    comm = command.split()
-    print(comm)
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
-    if connected == False and command == '/join 127.0.0.1 12345':
+    if connected == False and command == "/join 127.0.0.1 12345":
         #create socket for server
         #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
-        join = json.dumps(json_join())
 
-        #s.connect((comm[1], int(comm[2])))
         connected = True
+        join = json.dumps(json_join())
         s.sendto(join.encode('utf-8'), server)
         #s.send(command.encode('utf-8'))
-       # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
        # s.connect(('127.0.0.1', 12345))
         threading.Thread(target=listen, args=(s,), daemon=True).start()
         #print("Connection to the Message Board Server is successful!")
@@ -121,8 +120,16 @@ while True:
         elif len(command) >= 3 and command[0] == '/msg':
             send_one = json.dumps(json_sendone(command))
             s.sendto(send_one.encode('utf-8'), server)
-        else:
-            print("error")
-    else:
-        print("error not connected")
+    elif connected == False:
+        command = command.split()
+        if command[0] == '/join' and command != "/join 127.0.0.1 12345":
+            print('Error: Connection to the Message Board Server has failed! Please check IP Address and Port Number.')
+            disc_error = json.dumps(json_error('Error: Connection to the Message Board Server has failed! Please check IP Address and Port Number.'))
+            s.sendto(disc_error.encode('utf-8'), server)
+        elif command[0] == '/leave':
+            print('Error: Disconnection failed. Please connect to the server first.')
+            disc_error = json.dumps(json_error('Error: Disconnection failed. Please connect to the server first.'))
+            s.sendto(disc_error.encode('utf-8'), server)
+
+s.close()
 

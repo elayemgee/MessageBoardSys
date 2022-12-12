@@ -47,7 +47,6 @@ def findClientIndex(address):
                 return index
     return None
 
-
 # Create a UDP socket
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 host = '127.0.0.1'
@@ -55,11 +54,11 @@ port = 12345
 s.bind((host, port))
 
 while True:
-    print("####### Server is listening #######")
+    print("\nServer is listening...")
     data, address = s.recvfrom(1024) #4096
     print(data)
     print(address)
-    print("\n\n Server received: ", data.decode('utf-8'), "\n\n")
+    print("\n Server received: ", data.decode('utf-8'), "\n")
 
     data = data.decode('utf-8')
     comm = json.loads(data)
@@ -79,7 +78,7 @@ while True:
         #command = json.dumps(leave())
         data.replace("'", '"')
         s.sendto(data.encode('utf-8'), address)
-        
+                     
     elif comm["command"] == "register":
         temp = list()
         temp.append(comm["handle"])
@@ -91,7 +90,7 @@ while True:
         data.replace("'", '"')
         #command = json.dumps(register(data))
         #s.sendto(command.encode('utf-8'), address)
-
+  
         for c in clients:
             print(c[0])
             sendTo = c[1]
@@ -102,13 +101,12 @@ while True:
         data.replace("'", '"')
         username = findPerson(address)
         withHandle = username + ": " + comm["message"]
-        forAll = {"command": "all", "message": withHandle}
-
+        sendAll = {"command": "all", "message": withHandle}
         ctr = 1
         for c in clients:
             print(c[0])
             sendTo = c[1]
-            s.sendto(forAll.encode('utf-8'), sendTo)
+            s.sendto(sendAll.encode('utf-8'), sendTo)
             print("Sent to " + str(ctr))
             ctr += 1
         print("Done sending to all")
