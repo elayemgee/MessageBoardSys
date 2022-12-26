@@ -19,5 +19,5 @@ Python's threading module. The project only works on MacOS.
 5. Send direct message to a single handle: /msg <handle> <message> 
 6. Request command help to output all Input Syntax commands for references: /?
 
-##Credits
+## Credits
 Annika Capada and Lauren Garcia
