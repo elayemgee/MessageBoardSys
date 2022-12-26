@@ -18,3 +18,6 @@ Python's threading module. The project only works on MacOS.
 4. Send message to all: /all <message>
 5. Send direct message to a single handle: /msg <handle> <message> 
 6. Request command help to output all Input Syntax commands for references: /?
+
+##Credits
+Annika Capada and Lauren Garcia
